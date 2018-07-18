@@ -9,12 +9,8 @@ function! s:getWordPos()
     return [start, end]
 endfunction
 
-function! s:getNextWord(word, dir)
-    if !exists("g:ctrla#dict") || type(g:ctrla#dict) != type([])
-        return ""
-    endif
-
-    for words in g:ctrla#dict
+function! s:lookup(dict, word, dir)
+    for words in a:dict
         let idx = index(words, a:word)
         if idx != -1
             let maxlen = len(words)
@@ -25,6 +21,25 @@ function! s:getNextWord(word, dir)
 
     " Not found
     return ""
+endfunction
+
+function! s:getNextWord(word, dir)
+    if !exists("g:ctrla#dict") || type(g:ctrla#dict) != type({})
+        return ""
+    endif
+
+    let ft = &ft
+    let nextWord = ""
+
+    if ft != "" && has_key(g:ctrla#dict, ft)
+        let nextWord = s:lookup(g:ctrla#dict[ft], a:word, a:dir)
+    endif
+
+    if nextWord == "" && has_key(g:ctrla#dict, "*")
+        let nextWord = s:lookup(g:ctrla#dict["*"], a:word, a:dir)
+    endif
+
+    return nextWord
 endfunction
 
 function! s:replaceWord(dir)
